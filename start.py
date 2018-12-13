@@ -1,54 +1,11 @@
-import sys
-from inspect import *
-from pprint import *
+from inspect import getmembers, isclass, isfunction
 
-# module for testing
-module_name = 'test_module'
-#test_module = __import__(module_name)
-from test_module import *
-
-#x = E.__mro__
-'''
-class MyAttr:
-    def __init__(owner, value, name):
-        self.owner = owner
-        self.value = value
-        self.name = name
-
-def get_members(cls):
-    dictionary = cls.__dict__
-
-    [for key, value in dictionary]
-'''
-#a = C()
-#pprint(getmembers(A, isroutine))
-
-# TODO: remove __module__, __dict__, __doc__, __weakref__
-obj = object().__class__
-def mytest(tesstcls):
-    pprint(tesstcls.__dict__)
-    pprint(tesstcls.__dir__())
-    #pprint(dir(tesstcls))
-    #pprint(tesstcls.__mro__)
-    print("--------------------------------")
-#mytest(A)
-
-
-def printClass(cls):
-    pass
-
-#classes = getmembers(sys.modules[module_name], isclass)
-#pprint([attribute for attribute, value in Root.__dict__.items()])
-'''
-fns = inspect.getmembers(sys.modules[module_name], inspect.isfunction)
-classtree = inspect.getclasstree([cls[1] for cls in classes], False)
-myprint(classes)    
-myprint(fns)
-myprint(classtree)
-
-classtreeAB = inspect.getclasstree([test_module.A, test_module.B], True)
-myprint(classtreeAB)
-'''
+def _get_class_members(cls):
+    """Get members that defined only in that class"""
+    return filter(
+        lambda x: not x.startswith('__'), 
+        dir(cls)
+    )
 
 class ChainNode:
     """Instance to know about member at some moment of hierarchy"""
@@ -56,30 +13,17 @@ class ChainNode:
         self.classInfo = cls
         self.attributeValue = value
 
-def find_override(maincls, attrname):
+def _find_override(maincls, attrname):
     """Generator through MRO for attribute overriding"""
     for cls in maincls.__mro__[:-1]:
         for name, value in cls.__dict__.items():
             if attrname == name:
                 yield ChainNode(cls, value)
 
-def get_class_members(cls):
-    """Get members that defined only in that class"""
-    return filter(
-        lambda x: not x.startswith('__'), 
-        dir(cls)
-    )
-
-def transitive_inheritance(cls):
+def _transitive_inheritance(cls):
     """Create overriding generator for each class attribute"""
-    members = get_class_members(cls)
-    return {m: find_override(cls, m) for m in members} 
-
-
-# def generate_chain(cls):
-#     """Transitive inheritance chains for class"""
-#     attrs = transitive_inheritance(cls)
-#     return {name: [x for x in gen] for name, gen in attrs.items()}
+    members = _get_class_members(cls)
+    return {m: _find_override(cls, m) for m in members}
 
 class MemberChain:
     """Instance that defines member transitive inheritance"""
@@ -104,7 +48,7 @@ class MemberChain:
 def generate_chain(cls):
     """Transitive inheritance chains for class"""
     chains = []
-    chainGen = transitive_inheritance(cls)
+    chainGen = _transitive_inheritance(cls)
     for name, hierarchyGen in chainGen.items():
         classes = []
         initType = None
@@ -113,14 +57,11 @@ def generate_chain(cls):
                 initType = x.attributeValue
             classes.append(x.classInfo)
         chains.append(MemberChain(name, initType, classes))
-    return chains            
-    
-# test 1
-print(generate_chain(A))
+    return chains
 
-def generate_first_node(cls):
+def _generate_first_node(cls):
     """Look for only first member using"""
-    attrs = transitive_inheritance(cls)
+    attrs = _transitive_inheritance(cls)
 
     return {name: next(iter(gen)) for name, gen in attrs.items()}
 
@@ -128,7 +69,7 @@ class RootMember:
     def __init__(self, name, value, ):
         self.name = name
         self.value = value
-    # f'{type2str(node.attributeValue)}: {name}'
+    # f'{_type2str(node.attributeValue)}: {name}'
 
 # task 6
 def get_root_members(cls):
@@ -137,16 +78,13 @@ def get_root_members(cls):
         # "Same classes: All root members"
         return None
     else:
-        fullchain = generate_first_node(cls)
+        fullchain = _generate_first_node(cls)
         return (
             RootMember(name, node.attributeValue) 
             for name, node in fullchain.items() if node.classInfo == root
         )
 
-# test 6
-#pprint([g for g in iter(get_root_members(F))])
-
-def get_dict_extremum(data, maximum):
+def _get_dict_extremum(data, maximum):
     """Get all extremum dictionary keys by its value"""
     if not data:
         return None
@@ -170,10 +108,7 @@ def common_subclasses(a, b, greatest=True):
     common = {x: len(x.__mro__)
         for x in getSet(a) & getSet(b)}
     
-    return get_dict_extremum(common, greatest)
-
-# test 4   
-#pprint([x for x in iter(common_subclasses(Root, A))])
+    return _get_dict_extremum(common, greatest)
 
 # task 5
 def common_superclasses(a, b, greatest=True):
@@ -190,10 +125,7 @@ def common_superclasses(a, b, greatest=True):
     # do not consider object in hierarchy
     del common[object().__class__]
 
-    return get_dict_extremum(common, not greatest)
-
-# test 5
-#pprint([x for x in iter(common_superclasses(E, F, True))])
+    return _get_dict_extremum(common, not greatest)
 
 class Relation:
     """Instance to know about Relation between two classes"""
@@ -219,7 +151,7 @@ class Relation:
         return head + '\n' + heararchy
     '''
 
-def get_relation_mro(a, b):
+def _get_relation_mro(a, b):
     mro = a.__mro__
     # if b is a superclass
     if b in mro:
@@ -242,7 +174,7 @@ def relation_classes(a, b):
     if a == b: return Relation(0)
         
     # if is superclass
-    sub = get_relation_mro(a, b)
+    sub = _get_relation_mro(a, b)
     if sub is not None: return sub
     
     commonsub = common_subclasses(a, b, False)
@@ -257,11 +189,6 @@ def relation_classes(a, b):
     else: 
         return Relation(4)
 
-# test 3
-#pprint(relation_classes(A, A))
-
-
-
 class OverridedMember:
     """Instance to know about overriding"""
     def __init__(self, name, chain, sub):
@@ -270,11 +197,11 @@ class OverridedMember:
         self.oldC = chain.classInfo
         self.newC = sub
 
-def get_class_overridings(cls):
+def _get_class_overridings(cls):
     overridings = []
-    members = get_class_members(cls)
+    members = _get_class_members(cls)
     for mem in members:
-        igenerator = iter(find_override(cls, mem))
+        igenerator = iter(_find_override(cls, mem))
         next(igenerator)
         try:
             override = next(igenerator)
@@ -286,7 +213,4 @@ def get_class_overridings(cls):
 # task 2
 def get_all_overridings(module):
     allClasses = [v for n, v in getmembers(module, isclass)]
-    return filter(bool, (get_class_overridings(cls) for cls in allClasses))
-
-# test 2
-#pprint(list(get_all_overridings(module)))
+    return filter(bool, (_get_class_overridings(cls) for cls in allClasses))
