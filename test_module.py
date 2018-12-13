@@ -1,6 +1,7 @@
 class Root:
     gggvp = int()
     def do(self): print("Do Roots")
+    def kkdd(self): pass
     #def __init__(self): print("Booobb")
 
 class A(Root):

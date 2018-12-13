@@ -79,7 +79,6 @@ def transitive_inheritance(cls):
         )
     return {m: find_override(cls, m) for m in members} 
 
-# task 1
 def generate_chain(cls):
     """Transitive inheritance chains for class"""
     attrs = transitive_inheritance(cls)
@@ -100,6 +99,27 @@ def fullchain2str(cls):
 
 # test 1
 # print(fullchain2str(A))
+
+# task 6
+def get_root_members(cls):
+    try:
+        root = cls.__mro__[-2]
+        if root.__name__ == cls.__name__:
+            return "Same classes: All root members"
+        else:
+            members = []
+            fullchain = generate_chain(cls)
+            
+            for name, hierarchy in fullchain.items(): 
+                lastValue = hierarchy[0]
+                if lastValue.classInfo == root:
+                    members.append(f'{type2str(lastValue.attributeValue)}: {name}')
+            return members
+    except:
+        return "Object class is not used"
+
+# test 6
+# pprint(get_root_members(object))
 
 def get_dict_extremum(data, maximum):
     """Get all extremum dictionary keys by its value"""
