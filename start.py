@@ -34,9 +34,6 @@ def mytest(tesstcls):
 #mytest(A)
 
 
-def getclasses(module_name):
-    return [v for n, v in getmembers(sys.modules[module_name], isclass)]
-# pprint(getclasses(module_name))
 def printClass(cls):
     pass
 
@@ -124,7 +121,7 @@ def get_root_members(cls):
         return "Object class is not used"
 
 # test 6
-pprint(get_root_members(F))
+# pprint(get_root_members(F))
 
 def get_dict_extremum(data, maximum):
     """Get all extremum dictionary keys by its value"""
@@ -228,3 +225,15 @@ def relation_classes(a, b):
 
 # test 3
 # pprint(relation_classes(A, A))
+
+module = sys.modules[module_name]
+def gettopclasses(module):
+    allClasses = [v for n, v in getmembers(module, isclass)]
+    return filter(lambda cls: not cls.__subclasses__(), allClasses)
+
+# task 2
+def get_all_overridings(module):
+    return [generate_chain(x) for x in gettopclasses(module)]
+
+# test 2
+pprint(get_all_overridings(module))
