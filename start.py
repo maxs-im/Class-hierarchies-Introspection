@@ -50,12 +50,6 @@ classtreeAB = inspect.getclasstree([test_module.A, test_module.B], True)
 myprint(classtreeAB)
 '''
 
-
-def type2str(value):
-    """Get member value and traslate it in our 'type'"""
-    if isfunction(value): return "method"
-    else: return "attribute"
-
 class ChainNode:
     """Instance to know about member at some moment of hierarchy"""
     def __init__(self, cls, value):
@@ -81,26 +75,48 @@ def transitive_inheritance(cls):
     members = get_class_members(cls)
     return {m: find_override(cls, m) for m in members} 
 
-def generate_chain(cls):
-    """Transitive inheritance chains for class"""
-    attrs = transitive_inheritance(cls)
-    return {name: [x for x in gen] for name, gen in attrs.items()}
+
+# def generate_chain(cls):
+#     """Transitive inheritance chains for class"""
+#     attrs = transitive_inheritance(cls)
+#     return {name: [x for x in gen] for name, gen in attrs.items()}
+
+class MemberChain:
+    """Instance that defines member transitive inheritance"""
+    def __init__(self, name, value, hierarchy):
+        self.name = name
+        self.value = value
+        self.hierarchy = hierarchy
+    
+    # def type2str(value):
+    #     """Get member value and traslate it in our 'type'"""
+    #     if isfunction(value): return "method"
+    #     else: return "attribute"
+    
+    # chainS = ' --> '.join(x.classInfo.__name__ for x in ihierarchy)
+    # line = f"{type2str(lastVal)} '{name}': {chainS}"
+    # lines.append('\n' + line)
+
+    # separ = '\n' + '-'*100
+    # return f'Start point: {cls.__name__}' + separ + ''.join(lines) + separ
 
 # task 1
-def fullchain2str(cls):
-    lines = []
-    fullchain = generate_chain(cls)
-    for name, hierarchy in fullchain.items():
-        lastVal = hierarchy[0].attributeValue        
-        chainS = ' --> '.join(x.classInfo.__name__ for x in hierarchy)
-        line = f"{type2str(lastVal)} '{name}': {chainS}"
-        lines.append('\n' + line)
-
-    separ = '\n' + '-'*100
-    return f'Start point: {cls.__name__}' + separ + ''.join(lines) + separ
-
+def generate_chain(cls):
+    """Transitive inheritance chains for class"""
+    chains = []
+    chainGen = transitive_inheritance(cls)
+    for name, hierarchyGen in chainGen.items():
+        classes = []
+        initType = None
+        for x in iter(hierarchyGen):   
+            if not initType: 
+                initType = x.attributeValue
+            classes.append(x.classInfo)
+        chains.append(MemberChain(name, initType, classes))
+    return chains            
+    
 # test 1
-# print(fullchain2str(A))
+print(generate_chain(A))
 
 def generate_first_node(cls):
     """Look for only first member using"""
@@ -108,25 +124,27 @@ def generate_first_node(cls):
 
     return {name: next(iter(gen)) for name, gen in attrs.items()}
 
+class RootMember:
+    def __init__(self, name, value, ):
+        self.name = name
+        self.value = value
+    # f'{type2str(node.attributeValue)}: {name}'
+
 # task 6
 def get_root_members(cls):
-    try:
-        root = cls.__mro__[-2]
-        if root.__name__ == cls.__name__:
-            return "Same classes: All root members"
-        else:
-            members = []
-            fullchain = generate_first_node(cls)
-            
-            for name, node in fullchain.items(): 
-                if node.classInfo == root:
-                    members.append(f'{type2str(node.attributeValue)}: {name}')
-            return members
-    except:
-        return "Object class is not used"
+    root = cls.__mro__[-2]
+    if root.__name__ == cls.__name__:
+        # "Same classes: All root members"
+        return None
+    else:
+        fullchain = generate_first_node(cls)
+        return (
+            RootMember(name, node.attributeValue) 
+            for name, node in fullchain.items() if node.classInfo == root
+        )
 
 # test 6
-# pprint(get_root_members(F))
+#pprint([g for g in iter(get_root_members(F))])
 
 def get_dict_extremum(data, maximum):
     """Get all extremum dictionary keys by its value"""
@@ -136,7 +154,7 @@ def get_dict_extremum(data, maximum):
     reducer = max if maximum else min
     reducer_key = reducer(data.values())
 
-    return [k for k in data if data[k] == reducer_key]
+    return (k for k in data if data[k] == reducer_key)
 
 # task 4
 def common_subclasses(a, b, greatest=True):
@@ -155,7 +173,7 @@ def common_subclasses(a, b, greatest=True):
     return get_dict_extremum(common, greatest)
 
 # test 4   
-#pprint(common_subclasses(Root, A))
+#pprint([x for x in iter(common_subclasses(Root, A))])
 
 # task 5
 def common_superclasses(a, b, greatest=True):
@@ -175,63 +193,74 @@ def common_superclasses(a, b, greatest=True):
     return get_dict_extremum(common, not greatest)
 
 # test 5
-#pprint(common_superclasses(E, F, True))
+#pprint([x for x in iter(common_superclasses(E, F, True))])
 
-'''
-def psame(cls):
-    return f'Classes are the same {cls.__name__}'
-def psuperclass(sub, sup, queue):
-    head = f'{sup.__name__} is a superclass for {sub.__name__}'
-    heararchy = ' --> '.join(queue)
-    return head + '\n' + heararchy
-'''
+class Relation:
+    """Instance to know about Relation between two classes"""
+    
+    """
+            type:   0 - the same, 
+                    1 - superclass,
+                    2 - common superclasses
+                    3 - common subclasses
+                    4 - independent
+            path: class heirarchy (from - to)
+    """
+    def __init__(self, type, path=None):
+        self.type = type
+        self.path = path
+
+    '''
+    def psame(cls):
+        return f'Classes are the same {cls.__name__}'
+    def psuperclass(sub, sup, queue):
+        head = f'{sup.__name__} is a superclass for {sub.__name__}'
+        heararchy = ' --> '.join(queue)
+        return head + '\n' + heararchy
+    '''
 
 def get_relation_mro(a, b):
     mro = a.__mro__
     # if b is a superclass
     if b in mro:
         index = mro.index(b)
-        return 1, list(mro[:index + 1])      
+        return Relation(1, mro[:index + 1])    
     else:
         # if a is a superclass 
         mro = b.__mro__
         if a in mro:
             index = mro.index(a)
-            return 1, list(mro[:index + 1])
+            return Relation(1, mro[:index + 1])
         else:
             return None
 
 # task 3
 def relation_classes(a, b):
-    """Relation between two classes.
-        Returns 2 params (type, tuple)
-            type:   0 - the same, 
-                    1 - superclass,
-                    2 - common superclasses
-                    3 - common subclasses
-                    4 - independent
-            tuple: classes from heirarchy   
-    """
+    """Get relation between two classes"""
     
     # if the same
-    if a == b: return 0, None
+    if a == b: return Relation(0)
         
     # if is superclass
     sub = get_relation_mro(a, b)
     if sub is not None: return sub
     
-    commonsub, commonsup = common_subclasses(a, b, False), common_superclasses(a, b)
+    commonsub = common_subclasses(a, b, False)
+    commonsup = common_superclasses(a, b)
     
     # if classes have common subclasses
-    if commonsub: return 2, commonsub
+    if commonsub: 
+        return Relation(2, commonsub)
     # if classes have common superclasses
-    elif commonsup: return 3, commonsup
-    else: return 4, None
+    elif commonsup: 
+        return Relation(3, commonsup)
+    else: 
+        return Relation(4)
 
 # test 3
-# pprint(relation_classes(A, A))
+#pprint(relation_classes(A, A))
 
-module = sys.modules[module_name]
+
 
 class OverridedMember:
     """Instance to know about overriding"""
@@ -246,7 +275,7 @@ def get_class_overridings(cls):
     members = get_class_members(cls)
     for mem in members:
         igenerator = iter(find_override(cls, mem))
-        own = next(igenerator)
+        next(igenerator)
         try:
             override = next(igenerator)
             overridings.append(OverridedMember(mem, override, cls))
@@ -258,7 +287,6 @@ def get_class_overridings(cls):
 def get_all_overridings(module):
     allClasses = [v for n, v in getmembers(module, isclass)]
     return filter(bool, (get_class_overridings(cls) for cls in allClasses))
-
 
 # test 2
 #pprint(list(get_all_overridings(module)))
