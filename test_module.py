@@ -27,6 +27,7 @@ class D(B):
     def __init__(self): print("Mda hahah")
     def do(self): print("Do B")
 class E(C, D):
+    kkdd = int()
     def __init__(self): print("da")
     def do(self): print("Do E")
     def atr(self): print("Atr")

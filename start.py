@@ -100,6 +100,12 @@ def fullchain2str(cls):
 # test 1
 # print(fullchain2str(A))
 
+def generate_first_node(cls):
+    """Look for only first member using"""
+    attrs = transitive_inheritance(cls)
+
+    return {name: next(iter(gen)) for name, gen in attrs.items()}
+
 # task 6
 def get_root_members(cls):
     try:
@@ -108,18 +114,17 @@ def get_root_members(cls):
             return "Same classes: All root members"
         else:
             members = []
-            fullchain = generate_chain(cls)
+            fullchain = generate_first_node(cls)
             
-            for name, hierarchy in fullchain.items(): 
-                lastValue = hierarchy[0]
-                if lastValue.classInfo == root:
-                    members.append(f'{type2str(lastValue.attributeValue)}: {name}')
+            for name, node in fullchain.items(): 
+                if node.classInfo == root:
+                    members.append(f'{type2str(node.attributeValue)}: {name}')
             return members
     except:
         return "Object class is not used"
 
 # test 6
-# pprint(get_root_members(object))
+pprint(get_root_members(F))
 
 def get_dict_extremum(data, maximum):
     """Get all extremum dictionary keys by its value"""
