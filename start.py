@@ -57,6 +57,7 @@ def type2str(value):
     else: return "attribute"
 
 class ChainNode:
+    """Instance to know about member at some moment of hierarchy"""
     def __init__(self, cls, value):
         self.classInfo = cls
         self.attributeValue = value
@@ -68,12 +69,16 @@ def find_override(maincls, attrname):
             if attrname == name:
                 yield ChainNode(cls, value)
 
+def get_class_members(cls):
+    """Get members that defined only in that class"""
+    return filter(
+        lambda x: not x.startswith('__'), 
+        dir(cls)
+    )
+
 def transitive_inheritance(cls):
     """Create overriding generator for each class attribute"""
-    members = filter(
-            lambda x: not x.startswith('__'), 
-            dir(cls)
-        )
+    members = get_class_members(cls)
     return {m: find_override(cls, m) for m in members} 
 
 def generate_chain(cls):
@@ -227,13 +232,33 @@ def relation_classes(a, b):
 # pprint(relation_classes(A, A))
 
 module = sys.modules[module_name]
-def gettopclasses(module):
-    allClasses = [v for n, v in getmembers(module, isclass)]
-    return filter(lambda cls: not cls.__subclasses__(), allClasses)
+
+class OverridedMember:
+    """Instance to know about overriding"""
+    def __init__(self, name, chain, sub):
+        self.name = name
+        self.value = chain.attributeValue
+        self.oldC = chain.classInfo
+        self.newC = sub
+
+def get_class_overridings(cls):
+    overridings = []
+    members = get_class_members(cls)
+    for mem in members:
+        igenerator = iter(find_override(cls, mem))
+        own = next(igenerator)
+        try:
+            override = next(igenerator)
+            overridings.append(OverridedMember(mem, override, cls))
+        except:
+            continue
+    return overridings
 
 # task 2
 def get_all_overridings(module):
-    return [generate_chain(x) for x in gettopclasses(module)]
+    allClasses = [v for n, v in getmembers(module, isclass)]
+    return filter(bool, (get_class_overridings(cls) for cls in allClasses))
+
 
 # test 2
-pprint(get_all_overridings(module))
+#pprint(list(get_all_overridings(module)))
