@@ -21,7 +21,7 @@ def get_members(cls):
     [for key, value in dictionary]
 '''
 #a = C()
-pprint(getmembers(A, isroutine))
+#pprint(getmembers(A, isroutine))
 
 # TODO: remove __module__, __dict__, __doc__, __weakref__
 obj = object().__class__
@@ -33,43 +33,13 @@ def mytest(tesstcls):
     print("--------------------------------")
 #mytest(A)
 
+
+def getclasses(module_name):
+    return [v for n, v in getmembers(sys.modules[module_name], isclass)]
+# pprint(getclasses(module_name))
 def printClass(cls):
     pass
 
-class ChainNode:
-    def __init__(self, cls, value):
-        self.classInfo = cls
-        self.attributeValue = value
-
-def find_override(maincls, attrname):
-    """Generator through MRO for attribute overriding"""
-    for cls in maincls.__mro__[:-1]:
-        for name, value in cls.__dict__:
-            if attrname == name:
-                yield ChainNode(cls, value)
-
-
-def transitive_inheritance(cls):
-    """Create overriding generator for each class attribute"""
-    members = filter(
-            lambda x: not x.startswith('__'), 
-            dir(cls)
-        )
-    return map(lambda m: (m, find_override(cls, m)), members)
-
-def generate_chain(cls):
-    """Transitive inheritance chains for class"""
-    def convertattr(name, gen):
-        chain = [x for x in gen]
-        return (name, chain)
-
-    attrs = transitive_inheritance(cls)
-    
-    return [convertattr(name, gen) for name, gen in attrs]
-
-
-#pprint(list(transitive_inheritance(A)))
-#pprint(generate_chain(A))
 #classes = getmembers(sys.modules[module_name], isclass)
 #pprint([attribute for attribute, value in Root.__dict__.items()])
 '''
@@ -84,12 +54,52 @@ myprint(classtreeAB)
 '''
 
 
+def type2str(value):
+    """Get member value and traslate it in our 'type'"""
+    if isfunction(value): return "method"
+    else: return "attribute"
 
+class ChainNode:
+    def __init__(self, cls, value):
+        self.classInfo = cls
+        self.attributeValue = value
 
+def find_override(maincls, attrname):
+    """Generator through MRO for attribute overriding"""
+    for cls in maincls.__mro__[:-1]:
+        for name, value in cls.__dict__.items():
+            if attrname == name:
+                yield ChainNode(cls, value)
 
-def getclasses(module_name):
-    return [v for n, v in getmembers(sys.modules[module_name], isclass)]
-# pprint(getclasses(module_name))
+def transitive_inheritance(cls):
+    """Create overriding generator for each class attribute"""
+    members = filter(
+            lambda x: not x.startswith('__'), 
+            dir(cls)
+        )
+    return {m: find_override(cls, m) for m in members} 
+
+# task 1
+def generate_chain(cls):
+    """Transitive inheritance chains for class"""
+    attrs = transitive_inheritance(cls)
+    return {name: [x for x in gen] for name, gen in attrs.items()}
+
+# task 1
+def fullchain2str(cls):
+    lines = []
+    fullchain = generate_chain(cls)
+    for name, hierarchy in fullchain.items():
+        lastVal = hierarchy[0].attributeValue        
+        chainS = ' --> '.join(x.classInfo.__name__ for x in hierarchy)
+        line = f"{type2str(lastVal)} '{name}': {chainS}"
+        lines.append('\n' + line)
+
+    separ = '\n' + '-'*100
+    return f'Start point: {cls.__name__}' + separ + ''.join(lines) + separ
+
+# test 1
+# print(fullchain2str(A))
 
 def get_dict_extremum(data, maximum):
     """Get all extremum dictionary keys by its value"""
