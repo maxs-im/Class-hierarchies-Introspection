@@ -42,7 +42,7 @@ def dec_overriding(cls):
     typegetter = lambda om: om.value
     cols = _categorize_members(convert_col, typegetter, res)
 
-    return (separator + el).join(filter(bool, cols))
+    return (el + separator + el).join(filter(bool, cols))
 
 # task 3
 def dec_relation(a, b):
@@ -60,12 +60,13 @@ def dec_subclasses(arrcls, greatest = True):
     for cls in arrcls:
         lines.extend(parse_class(cls))
 
-    res = [x for x in iter(common_subclasses(arrcls, greatest))]
-    if not res:
+    intersect = common_subclasses(arrcls, greatest)
+    if not intersect:
         # middle
         lines.append('There is no any subclasses')
     else: 
         # middle
+        res = [x for x in iter(intersect)]
         lines.append(f"Biggest common subclass{'es' if len(res) else ''}:")
         # result
         for cls in res:
