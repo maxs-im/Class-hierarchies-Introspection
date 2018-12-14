@@ -1,4 +1,5 @@
-from tests import testing
+from tests import *
 
 if __name__ == "__main__":
-    testing()
+    #testing_logic()
+    testing_parsing()

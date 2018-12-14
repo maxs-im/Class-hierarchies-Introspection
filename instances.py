@@ -41,8 +41,8 @@ class MemberChain(Member):
         self.hierarchy = hierarchy
     
     def __str__(self):
-        chainS = ' --> '.join(x.class_info.__name__ for x in self.hierarchy)
-        line = f"{Member.type2str(self.value)} '{self.name}': {chainS}"
+        chainS = ' --> '.join(x.__name__ for x in self.hierarchy)
+        line = f"{Member.type2str(self.value)} '{self.name}': "
         return line + chainS
 
     #return f'Start point: {cls.__name__}' + separ + ''.join(lines) + separ
@@ -113,5 +113,5 @@ class OverridedMember(Member):
         self.newC = sub
 
     def __str__(self):
-        return f'{self.name} of {self.oldC.__name__} redefined in the {self.newC.__name__}'
+        return f'"{self.name}" of {self.oldC.__name__} redefined in the {self.newC.__name__}'
 

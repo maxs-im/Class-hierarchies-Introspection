@@ -22,10 +22,10 @@ def _transitive_inheritance(cls):
 # task 1
 def generate_chain(cls):
     """Transitive inheritance chains for class"""
-    chains = []
+    chains = list()
     chainGen = _transitive_inheritance(cls)
     for name, hierarchyGen in chainGen.items():
-        classes = []
+        classes = list()
         initType = None
         for x in iter(hierarchyGen):   
             if not initType: 
