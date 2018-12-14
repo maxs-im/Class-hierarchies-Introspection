@@ -1,17 +1,11 @@
-from inspect import getmembers, isclass, isfunction
+from instances import *
 
-def _get_class_members(cls):
+def get_class_members(cls):
     """Get members that defined only in that class"""
     return filter(
         lambda x: not x.startswith('__'), 
         dir(cls)
     )
-
-class ChainNode:
-    """Instance to know about member at some moment of hierarchy"""
-    def __init__(self, cls, value):
-        self.classInfo = cls
-        self.attributeValue = value
 
 def _find_override(maincls, attrname):
     """Generator through MRO for attribute overriding"""
@@ -22,27 +16,8 @@ def _find_override(maincls, attrname):
 
 def _transitive_inheritance(cls):
     """Create overriding generator for each class attribute"""
-    members = _get_class_members(cls)
+    members = get_class_members(cls)
     return {m: _find_override(cls, m) for m in members}
-
-class MemberChain:
-    """Instance that defines member transitive inheritance"""
-    def __init__(self, name, value, hierarchy):
-        self.name = name
-        self.value = value
-        self.hierarchy = hierarchy
-    
-    # def type2str(value):
-    #     """Get member value and traslate it in our 'type'"""
-    #     if isfunction(value): return "method"
-    #     else: return "attribute"
-    
-    # chainS = ' --> '.join(x.classInfo.__name__ for x in ihierarchy)
-    # line = f"{type2str(lastVal)} '{name}': {chainS}"
-    # lines.append('\n' + line)
-
-    # separ = '\n' + '-'*100
-    # return f'Start point: {cls.__name__}' + separ + ''.join(lines) + separ
 
 # task 1
 def generate_chain(cls):
@@ -54,35 +29,25 @@ def generate_chain(cls):
         initType = None
         for x in iter(hierarchyGen):   
             if not initType: 
-                initType = x.attributeValue
-            classes.append(x.classInfo)
+                initType = x.attribute_value
+            classes.append(x.class_info)
         chains.append(MemberChain(name, initType, classes))
     return chains
 
-def _generate_first_node(cls):
+def generate_first_node(cls):
     """Look for only first member using"""
     attrs = _transitive_inheritance(cls)
 
     return {name: next(iter(gen)) for name, gen in attrs.items()}
 
-class RootMember:
-    def __init__(self, name, value, ):
-        self.name = name
-        self.value = value
-    # f'{_type2str(node.attributeValue)}: {name}'
-
 # task 6
 def get_root_members(cls):
     root = cls.__mro__[-2]
     if root.__name__ == cls.__name__:
-        # "Same classes: All root members"
         return None
     else:
-        fullchain = _generate_first_node(cls)
-        return (
-            RootMember(name, node.attributeValue) 
-            for name, node in fullchain.items() if node.classInfo == root
-        )
+        chain = generate_first_node(cls)
+        return {name: mc for name, mc in chain.items() if mc.class_info == root}
 
 def _get_dict_extremum(data, maximum):
     """Get all extremum dictionary keys by its value"""
@@ -95,7 +60,7 @@ def _get_dict_extremum(data, maximum):
     return (k for k in data if data[k] == reducer_key)
 
 # task 4
-def common_subclasses(a, b, greatest=True):
+def common_subclasses(hierarchy, greatest=True):
     """Find common subclass class for two classes"""
     # recursively get all subclasses for class
     def get_subclasses(cls):
@@ -103,10 +68,11 @@ def common_subclasses(a, b, greatest=True):
             yield from get_subclasses(subclass)
             yield subclass
     
-    getSet = lambda cls: set(x for x in get_subclasses(cls))
-
+    get_set = lambda cls: set(x for x in get_subclasses(cls))
+    
+    sets = map(get_set, hierarchy)
     common = {x: len(x.__mro__)
-        for x in getSet(a) & getSet(b)}
+        for x in set.intersection(*sets)}
     
     return _get_dict_extremum(common, greatest)
 
@@ -127,42 +93,18 @@ def common_superclasses(a, b, greatest=True):
 
     return _get_dict_extremum(common, not greatest)
 
-class Relation:
-    """Instance to know about Relation between two classes"""
-    
-    """
-            type:   0 - the same, 
-                    1 - superclass,
-                    2 - common superclasses
-                    3 - common subclasses
-                    4 - independent
-            path: class heirarchy (from - to)
-    """
-    def __init__(self, type, path=None):
-        self.type = type
-        self.path = path
-
-    '''
-    def psame(cls):
-        return f'Classes are the same {cls.__name__}'
-    def psuperclass(sub, sup, queue):
-        head = f'{sup.__name__} is a superclass for {sub.__name__}'
-        heararchy = ' --> '.join(queue)
-        return head + '\n' + heararchy
-    '''
-
-def _get_relation_mro(a, b):
+def get_relation_mro(a, b):
     mro = a.__mro__
     # if b is a superclass
     if b in mro:
         index = mro.index(b)
-        return Relation(1, mro[:index + 1])    
+        return mro[:index + 1]   
     else:
         # if a is a superclass 
         mro = b.__mro__
         if a in mro:
             index = mro.index(a)
-            return Relation(1, mro[:index + 1])
+            return mro[:index + 1]
         else:
             return None
 
@@ -171,35 +113,28 @@ def relation_classes(a, b):
     """Get relation between two classes"""
     
     # if the same
-    if a == b: return Relation(0)
+    if a == b: return Relation(Relation.SAME, [a])
         
     # if is superclass
-    sub = _get_relation_mro(a, b)
-    if sub is not None: return sub
+    sub = get_relation_mro(a, b)
+    if sub is not None: return Relation(Relation.SUPER, sub)
     
-    commonsub = common_subclasses(a, b, False)
+    commonsub = common_subclasses([a, b], False)
     commonsup = common_superclasses(a, b)
     
     # if classes have common subclasses
     if commonsub: 
-        return Relation(2, commonsub)
+        return Relation(Relation.COMMON_SUB, [a, b] + commonsub)
     # if classes have common superclasses
     elif commonsup: 
-        return Relation(3, commonsup)
+        return Relation(Relation.COMMON_SUPER, [a, b] + commonsup)
     else: 
-        return Relation(4)
+        return Relation(Relation.INDEPENDENT, [a, b])
 
-class OverridedMember:
-    """Instance to know about overriding"""
-    def __init__(self, name, chain, sub):
-        self.name = name
-        self.value = chain.attributeValue
-        self.oldC = chain.classInfo
-        self.newC = sub
-
-def _get_class_overridings(cls):
+# task 2
+def get_class_overridings(cls):
     overridings = []
-    members = _get_class_members(cls)
+    members = get_class_members(cls)
     for mem in members:
         igenerator = iter(_find_override(cls, mem))
         next(igenerator)
@@ -209,8 +144,3 @@ def _get_class_overridings(cls):
         except:
             continue
     return overridings
-
-# task 2
-def get_all_overridings(module):
-    allClasses = [v for n, v in getmembers(module, isclass)]
-    return filter(bool, (_get_class_overridings(cls) for cls in allClasses))
