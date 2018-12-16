@@ -1,5 +1,6 @@
 from parsing import *
 from test_module import *
+from collections import namedtuple
 
 def border(fn):
     def decorator(*args, **kwargs):
@@ -54,3 +55,20 @@ def members_inherited_root(a):
     content = dec_root_member(a)
 
     return [title, content]
+
+ValueTask = namedtuple("ValueTask", 'fn description')
+# available tasks
+task_dict = {
+    "inheritance": 
+        ValueTask(transitive_inheritance_chains, "Transitive inheritance chains"),
+    "override":
+        ValueTask(overrided_members, "Overrided attributes and methods"),
+    "relation": 
+        ValueTask(relation_between, "Relation between two classes"),
+    "subclass": 
+        ValueTask(common_subclass, "The biggest/least common subclass for two classes"),
+    "superclass": 
+        ValueTask(common_superclass, "The biggest/least common superclass for two classes"),
+    "root": 
+        ValueTask(common_superclass, "Attributes and methods inherited by class from RootClass")
+}

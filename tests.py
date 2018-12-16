@@ -19,12 +19,12 @@ def testing_logic(arr=[0, 1, 2, 3, 4, 5, 6]):
         pprint(relation_classes(tm.A, tm.A))
     if 4 in arr:
         print("TEST 4")
-        pprint([x for x in iter(common_subclasses([tm.Root, tm.A], True))])
+        pprint([x for x in iter(common_subclasses([tm.A, tm.A], True))])
         print('-'*50)
         pprint([x for x in iter(common_subclasses([tm.Root, tm.A], False))])
     if 5 in arr:
         print("TEST 5")
-        pprint([x for x in iter(common_superclasses(tm.E, tm.F, True))])
+        pprint([x for x in iter(common_superclasses(tm.E, tm.E, True))])
         print('-'*50)
         pprint([x for x in iter(common_superclasses(tm.Root, tm.A, False))])
     if 6 in arr:
@@ -70,7 +70,8 @@ def get_all_classes(module = module):
 def testing_interface(arr=[0, 1, 2, 3, 4, 5, 6]):
     all_classes = get_all_classes()
     if 0 in arr:
-        print("TEST 0")
+        #complex_analysis(all_classes)
+        # return 1
         pass
     if 1 in arr:
         print("TEST 1")
