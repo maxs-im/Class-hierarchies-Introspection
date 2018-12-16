@@ -124,10 +124,10 @@ def relation_classes(a, b):
     
     # if classes have common subclasses
     if commonsub: 
-        return Relation(Relation.COMMON_SUB, [a, b] + commonsub)
+        return Relation(Relation.COMMON_SUB, [a, b] + list(commonsub))
     # if classes have common superclasses
     elif commonsup: 
-        return Relation(Relation.COMMON_SUPER, [a, b] + commonsup)
+        return Relation(Relation.COMMON_SUPER, [a, b] + list(commonsup))
     else: 
         return Relation(Relation.INDEPENDENT, [a, b])
 

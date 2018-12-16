@@ -63,7 +63,8 @@ def dec_subclasses(arrcls, greatest = True):
     intersect = common_subclasses(arrcls, greatest)
     if not intersect:
         # middle
-        lines.append('There is no any subclasses')
+        class_names = ' & '.join(map(lambda x: x.__name__, arrcls))
+        lines.append(f"There is no {'biggest' if greatest else 'common'} common superclass for {class_names}.")
     else: 
         # middle
         res = [x for x in iter(intersect)]
@@ -76,10 +77,16 @@ def dec_subclasses(arrcls, greatest = True):
 
 # task 5
 def dec_superclass(a, b, greatest):
-    res = [x for x in iter(common_superclasses(a, b, greatest))]
+    no_answer = f"There is no {'biggest' if greatest else 'least'} common superclass for {a.__name__} and {b.__name__}."
+    
+    common_gen = common_superclasses(a, b, greatest)
+    if not common_gen:
+        return no_answer
+
+    res = [x for x in iter(common_gen)]
 
     if not res: 
-        return f"There is no {'biggest' if greatest else 'common'} common superclass for {a.__name__} and {b.__name__}."
+        return no_answer
 
     blocks = list()
     for x in res:

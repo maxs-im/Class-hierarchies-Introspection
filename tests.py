@@ -1,13 +1,11 @@
 from pprint import pprint
 import test_module as tm
+from inspect import getmembers, isclass
 from logic import *
 from parsing import *
 from interface import *
 
-def testing_logic(arr=[0, 1, 2, 3, 4, 5, 6]):    
-    if 0 in arr:
-        print("TEST 0")
-        pass
+def testing_logic(arr=range(1, 7)):    
     if 1 in arr:
         print("TEST 1")
         print(generate_chain(tm.D))
@@ -19,9 +17,13 @@ def testing_logic(arr=[0, 1, 2, 3, 4, 5, 6]):
         pprint(relation_classes(tm.A, tm.A))
     if 4 in arr:
         print("TEST 4")
-        pprint([x for x in iter(common_subclasses([tm.A, tm.A], True))])
+        gen_common = common_subclasses([tm.A, tm.A], True)
+        if gen_common:
+            pprint([x for x in iter(gen_common)])
         print('-'*50)
-        pprint([x for x in iter(common_subclasses([tm.Root, tm.A], False))])
+        gen_common = common_subclasses([tm.A, tm.A], False)
+        if gen_common:
+            pprint([x for x in iter(gen_common)])
     if 5 in arr:
         print("TEST 5")
         pprint([x for x in iter(common_superclasses(tm.E, tm.E, True))])
@@ -31,13 +33,10 @@ def testing_logic(arr=[0, 1, 2, 3, 4, 5, 6]):
         print("TEST 6")
         pprint(get_root_members(tm.F))
 
-def testing_parsing(arr=[0, 1, 2, 3, 4, 5, 6]):    
-    if 0 in arr:
-        print("TEST 0")
-        pass
+def testing_parsing(arr=range(1, 7)):    
     if 1 in arr:
         print("TEST 1")
-        print(transitive_inheritance_chains(tm.D))
+        print(transitive_inheritance_chains([tm.D]))
     if 2 in arr:
         print("TEST 2")
         print(dec_overriding(tm.A))
@@ -58,27 +57,13 @@ def testing_parsing(arr=[0, 1, 2, 3, 4, 5, 6]):
         print("TEST 6")
         print(dec_root_member(tm.F))
 
-from sys import modules
-# module for testing
-module_name = 'test_module'
-#test_module = __import__(module_name)
-module = modules[module_name]
-def get_all_classes(module = module):
-    from inspect import getmembers, isclass
-    return [v for n, v in getmembers(module, isclass)]
-
-def testing_interface(arr=[0, 1, 2, 3, 4, 5, 6]):
-    all_classes = get_all_classes()
-    if 0 in arr:
-        #complex_analysis(all_classes)
-        # return 1
-        pass
+def testing_interface(allcls, arr=range(1, 7)):    
     if 1 in arr:
         print("TEST 1")
-        print(transitive_inheritance_chains(all_classes))
+        print(transitive_inheritance_chains(allcls))
     if 2 in arr:
         print("TEST 2")
-        print(overrided_members(all_classes))
+        print(overrided_members(allcls))
     if 3 in arr:
         print("TEST 3")
         print(relation_between(tm.D, tm.F))
@@ -96,3 +81,28 @@ def testing_interface(arr=[0, 1, 2, 3, 4, 5, 6]):
     if 6 in arr:
         print("TEST 6")
         print(members_inherited_root(tm.F))
+
+def complex_analysis(allcls):
+    yield transitive_inheritance_chains(allcls)
+    yield overrided_members(allcls)
+
+    for a in allcls:
+        for b in allcls: 
+            yield relation_between(a, b)
+            yield common_subclass([a, b], True)
+            yield common_subclass([a, b], False)
+            yield common_superclass(a, b, True)
+            yield common_superclass(a, b, False)
+
+    for cls in allcls:
+       yield members_inherited_root(cls)
+
+if __name__ == "__main__":
+    allcls = [v for n, v in getmembers(tm, isclass)]
+    #testing_logic()
+    #testing_parsing()
+    if allcls:
+        #testing_interface(allcls)
+        for x in complex_analysis(allcls):
+            print(x)
+    

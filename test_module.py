@@ -36,25 +36,3 @@ class E(C, D):
     #def doSt(): print("Do static E")
 class F(D, C):
     def do(self): print("Do F")
-
-# second variant conflict
-class AA:
-    def do2(self): print("Do2 AA")
-class BB:
-    def do2(self): print("Do2 BB")
-class CC(AA, BB):
-    pass
-class DD(BB, AA):
-    pass
-class FF(DD):
-    pass
-
-class AAA:
-    a = "Pa"
-
-class BBB(AAA):
-    def a(self):
-        print("kek")
-
-class CCC(AAA):
-    a = int()
