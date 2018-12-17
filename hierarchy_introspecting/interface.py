@@ -69,5 +69,5 @@ task_dict = {
     "superclass": 
         ValueTask(common_superclass, "The biggest/least common superclass for two classes"),
     "root": 
-        ValueTask(common_superclass, "Attributes and methods inherited by class from RootClass")
+        ValueTask(members_inherited_root, "Attributes and methods inherited by class from RootClass")
 }

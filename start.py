@@ -83,8 +83,7 @@ def _parse_args():
     # tasks
     group.add_argument("-t", choices=task_dict.keys(), help=create_help_task(), nargs='+')
     
-    #return parser.parse_args("-m test_module.py -a".split(' '))
-    return parser.parse_args("-m test_folder/test_module.py -t root".split(' '))
+    return parser.parse_args()
 
 def _complex_analysis_gen(allcls, allowed):
     if transitive_inheritance_chains in allowed:
