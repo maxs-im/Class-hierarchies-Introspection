@@ -1,15 +1,14 @@
-from parsing import *
-from test_module import *
+from .parsing import *
 from collections import namedtuple
 
-def border(fn):
+def _border(fn):
     def decorator(*args, **kwargs):
         content = (el + separator + el).join(fn(*args, **kwargs))
         return separator + el + content + el
 
     return decorator
 
-@border
+@_border
 def transitive_inheritance_chains(arrcls):
     # title
     blocks = ['Transitive inheritance chains']
@@ -21,7 +20,7 @@ def transitive_inheritance_chains(arrcls):
     
     return blocks
 
-@border
+@_border
 def overrided_members(allcls):
     # title 
     blocks = ['Overrided attributes and methods']
@@ -30,12 +29,12 @@ def overrided_members(allcls):
 
     return blocks
 
-@border
+@_border
 def relation_between(a, b):
     title = f'Relation between {a.__name__} and {b.__name__}'
     return [title, dec_relation(a, b)]
 
-@border
+@_border
 def common_subclass(arrcls, biggest):
     # title
     names = ', '.join(map(lambda x: x.__name__, arrcls))
@@ -43,13 +42,13 @@ def common_subclass(arrcls, biggest):
     blocks.append(dec_subclasses(arrcls, biggest))
     return blocks
 
-@border
+@_border
 def common_superclass(a, b, biggest):
     blocks = [f'The {"biggest" if biggest else "least"} common superclass for {a.__name__} and {b.__name__}']
     blocks.append(dec_superclass(a, b, biggest))
     return blocks
 
-@border
+@_border
 def members_inherited_root(a):
     title = f'Attributes and methods inherited by {a.__name__} from RootClass'
     content = dec_root_member(a)

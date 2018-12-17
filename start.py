@@ -1,10 +1,14 @@
+"""The main module where we can start our console application"""
+
+__author__ = ('Maxim Galchenko <maxim1998g@gmail.com>')
+
 import argparse
 from os import path
 from inspect import getmembers, isclass
 import importlib.util
-from interface import *
+from hierarchy_introspecting.interface import *
 
-class ModuleData:
+class _ModuleData:
     """Class that store data from module that we will introspect
     
         classes - dictionary {name : object} of all classes in module
@@ -55,7 +59,7 @@ class ModuleData:
     root_name = property(fset=__set_root_name,fget=__get_root_name)
     user_list = property(fget=__get_user_list)
 
-def parse_args():
+def _parse_args():
     # console UI
     parser = argparse.ArgumentParser()
     
@@ -79,9 +83,10 @@ def parse_args():
     # tasks
     group.add_argument("-t", choices=task_dict.keys(), help=create_help_task(), nargs='+')
     
-    return parser.parse_args('--module test_module.py -t relation'.split())
+    #return parser.parse_args("-m test_module.py -a".split(' '))
+    return parser.parse_args("-m test_folder/test_module.py -t root".split(' '))
 
-def complex_analysis_gen(allcls, allowed):
+def _complex_analysis_gen(allcls, allowed):
     if transitive_inheritance_chains in allowed:
         yield transitive_inheritance_chains(allcls)
     if overrided_members in allowed:
@@ -108,34 +113,39 @@ def complex_analysis_gen(allcls, allowed):
         for cls in allcls:
             yield members_inherited_root(cls)
 
-def logging(gen, file):
+def _logging(gen, file):
     for x in gen:
         file.write(x)
         print(x)
-
-if __name__ == "__main__":     
-
-    args = parse_args()
+    
+def start():
+    """Entrance Console function"""
+    args = _parse_args()
     try:
-        meta_data = ModuleData(args.module, args.classes)
+        meta_data = _ModuleData(args.module, args.classes)
+        def get_file_path(name):
+            sub_folder = path.dirname(args.module)
+            extention = 'txt'
+            return path.join(sub_folder, name + '.' + extention)
 
-        extention = '.txt'     
         if args.all:
-            gener = complex_analysis_gen(meta_data.user_list, 
+            gener = _complex_analysis_gen(meta_data.user_list, 
                 map(lambda x: x.fn, task_dict.values()))
 
-            with open(meta_data.root_name + "_FULL" + extention, "w") as file:
-                logging(gener, file)
+            with open(get_file_path(meta_data.root_name + "_FULL"), "w") as file:
+                _logging(gener, file)
         else:
             allowed = [task_dict[k].fn for k in args.t if k in task_dict]
-            gener = complex_analysis_gen(meta_data.user_list, allowed)
+            gener = _complex_analysis_gen(meta_data.user_list, allowed)
 
-            with open(meta_data.root_name + extention, "a") as file: 
-                logging(gener, file)
-
+            with open(get_file_path(meta_data.root_name), "a") as file: 
+                _logging(gener, file)
     except ValueError as e:
         print(e)
-    except:
-        print("Unhandled exception")
+    except e:
+        print(f"Unhandled exception: {e}")
 
     print("\nFinished.")
+
+if __name__ == "__main__":
+    start()

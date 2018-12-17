@@ -1,5 +1,5 @@
-from instances import *    
-from logic import *
+from ._instances import *    
+from .logic import *
 from collections import defaultdict
 
 def _categorize_members(converter, typegetter, arr):
@@ -98,11 +98,11 @@ def dec_superclass(a, b, greatest):
 
 # task 6
 def dec_root_member(cls):
-    res = get_root_members(cls).items()
+    res = get_root_members(cls)
 
     if not res: return 'That is already root class'
     convert_col = lambda arr: el.join(map(lambda x: x[0], arr))
     typegetter = lambda x: x[1].attribute_value 
-    cols = _categorize_members(convert_col, typegetter, res)
+    cols = _categorize_members(convert_col, typegetter, res.items())
 
     return el.join(filter(bool, cols))

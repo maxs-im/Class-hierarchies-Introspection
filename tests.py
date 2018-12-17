@@ -1,9 +1,10 @@
 from pprint import pprint
-import test_module as tm
 from inspect import getmembers, isclass
-from logic import *
-from parsing import *
-from interface import *
+from hierarchy_introspecting.logic import *
+from hierarchy_introspecting.parsing import *
+from hierarchy_introspecting.interface import *
+
+import test_folder.test_module as tm
 
 def testing_logic(arr=range(1, 7)):    
     if 1 in arr:
@@ -105,4 +106,3 @@ if __name__ == "__main__":
         #testing_interface(allcls)
         for x in complex_analysis(allcls):
             print(x)
-    

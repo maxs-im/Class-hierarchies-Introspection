@@ -1,4 +1,4 @@
-from instances import *
+from ._instances import *
 
 def get_class_members(cls):
     """Get members that defined only in that class"""

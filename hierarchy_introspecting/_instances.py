@@ -25,8 +25,6 @@ class Member:
 
         return "attribute"
 
-    
-
 class ChainNode:
     """Instance to know about member at some moment of hierarchy"""
     def __init__(self, cls, value):
@@ -103,7 +101,6 @@ class Relation:
         heararchy = ' & '.join(map(lambda x: x.__name__, path[2:]))
         return head + el + heararchy
     
-
 class OverridedMember(Member):
     """Instance to know about overriding"""
     def __init__(self, name, chain, sub):
