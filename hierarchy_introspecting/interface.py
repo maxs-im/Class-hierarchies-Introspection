@@ -11,7 +11,7 @@ def _border(fn):
 @_border
 def transitive_inheritance_chains(arrcls):
     # title
-    blocks = ['Transitive inheritance chains']
+    blocks = ['\t\tTransitive inheritance chains']
     for i, cls in enumerate(arrcls):
         # header
         blocks.append(f'{i+1}. Start point: {cls.__name__}')
@@ -23,7 +23,7 @@ def transitive_inheritance_chains(arrcls):
 @_border
 def overrided_members(allcls):
     # title 
-    blocks = ['Overrided attributes and methods']
+    blocks = ['\t\tOverrided attributes and methods']
     for cls in allcls:
         blocks.append(dec_overriding(cls))
 
@@ -31,26 +31,26 @@ def overrided_members(allcls):
 
 @_border
 def relation_between(a, b):
-    title = f'Relation between {a.__name__} and {b.__name__}'
+    title = f'\t\tRelation between {a.__name__} and {b.__name__}'
     return [title, dec_relation(a, b)]
 
 @_border
 def common_subclass(arrcls, biggest):
     # title
     names = ', '.join(map(lambda x: x.__name__, arrcls))
-    blocks = [f'The {"biggest" if biggest else "least"} common subclass for {names}']
+    blocks = [f'\t\tThe {"biggest" if biggest else "least"} common subclass for {names}']
     blocks.append(dec_subclasses(arrcls, biggest))
     return blocks
 
 @_border
 def common_superclass(a, b, biggest):
-    blocks = [f'The {"biggest" if biggest else "least"} common superclass for {a.__name__} and {b.__name__}']
+    blocks = [f'\t\tThe {"biggest" if biggest else "least"} common superclass for {a.__name__} and {b.__name__}']
     blocks.append(dec_superclass(a, b, biggest))
     return blocks
 
 @_border
 def members_inherited_root(a):
-    title = f'Attributes and methods inherited by {a.__name__} from RootClass'
+    title = f'\t\tAttributes and methods inherited by {a.__name__} from RootClass'
     content = dec_root_member(a)
 
     return [title, content]
